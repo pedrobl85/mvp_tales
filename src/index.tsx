@@ -45,10 +45,10 @@ interface MvpEntry {
 }
 
 
-interface DeadMvpInfo extends Array<DeadMob> { }
-interface MvpEntries extends Array<MvpEntry> { }
+interface IDeadMvpInfo extends Array<DeadMob> { }
+interface IMvpEntries extends Array<MvpEntry> { }
 
-async function getDeadMvpInfo(): Promise<DeadMvpInfo> {
+async function getDeadMvpInfo(): Promise<IDeadMvpInfo> {
     const mvpInfo = await fetch("https://api.ragnatales.com.br/mvp")
     return mvpInfo.json()
 }
@@ -58,8 +58,8 @@ async function getMobInfo(mob_id: number): Promise<MobInfo> {
     return spawnInfo.json()
 }
 
-function MvpInfo(mob: MobInfo, deadMob?: DeadMob): MvpEntries {
-    let listOfMvpInstances: MvpEntries = []
+function MvpInfo(mob: MobInfo, deadMob?: DeadMob): IMvpEntries {
+    let listOfMvpInstances: IMvpEntries = []
     mob.spawns.forEach(item => {
         const mvp: MvpEntry = {
             mob_id: mob.mob_id,
@@ -77,22 +77,28 @@ function MvpInfo(mob: MobInfo, deadMob?: DeadMob): MvpEntries {
     return listOfMvpInstances
 }
 
-async function generateMvpEntries(): Promise<MvpEntries> {
+async function generateMvpEntries(): Promise<IMvpEntries> {
     const deadMvps = await getDeadMvpInfo()
     console.log(deadMvps)
-    var listAllMvpInstances: MvpEntries = []
-    deadMvps.forEach(async deadMob => {
+    let listAllMvpInstances: IMvpEntries = []
+    var allMobInfos: { [index: number]: MobInfo } = {}
+    for (const deadMob of deadMvps) {
         const mob = await getMobInfo(deadMob.mob_id)
+        allMobInfos[mob.mob_id] = mob
         const individualMvpInstances = MvpInfo(mob, deadMob)
-        listAllMvpInstances = listAllMvpInstances.concat(individualMvpInstances)
-        console.log(listAllMvpInstances)
-    })
+        listAllMvpInstances.push.apply(listAllMvpInstances, individualMvpInstances)
+    }
+    console.log(listAllMvpInstances)
+    console.log(allMobInfos)
     return listAllMvpInstances
 }
 
-async function updateMvpEntries(currentList: MvpEntries): Promise<MvpEntries> {
+(async () => console.log(await generateMvpEntries()))()
 
-}
+
+// async function updateMvpEntries(currentList: IMvpEntries): Promise<IMvpEntries> {
+//     const deadMvps = await getDeadMvpInfo
+// }
 
 root.render(
     <React.StrictMode>
