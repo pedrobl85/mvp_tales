@@ -40,18 +40,60 @@ interface IMvpEntry {
     delay1?: number
     delay2?: number
     bossType?: number
+    deadCtr: number
 }
+
 
 
 let allMobInfos: { [index: number]: IMobInfo } = {}
 
-
-class MvpStorage {
-    [index: number]: { [index: string]: IMvpEntry }
+interface ObjectData {
+    [deathTime: string]: IMvpEntry;
 }
 
+interface MapData {
+    [mapName: string]: {
+        objects: ObjectData
+        deadCtr: number
+    }
+    ;
+}
+
+interface MultiKeyData {
+    [id: number]: MapData;
+}
+
+class MvpStorage {
+    private objects: MultiKeyData = {};
+
+    public addObject(id: number, mapName: string, deathTime: string, object: IMvpEntry, deadFlag = true): void {
+        if (!this.objects[id]) {
+            this.objects[id] = {};
+        }
+        if (!this.objects[id][mapName]) {
+            this.objects[id][mapName] = {
+                objects: {},
+                deadCtr: 0
+            };
+        }
+        this.objects[id][mapName].objects[deathTime] = object;
+        if (deadFlag) { this.objects[id][mapName].deadCtr++ }
+    }
+
+    public getDeadMobInfo(id: number, mapName: string, deathTime: string): object | undefined {
+        return this.objects[id]?.[mapName]?.objects[deathTime];
+    }
+
+    public getMapInfo(id: number, mapName: string): object[] {
+        return Object.values(this.objects[id]?.[mapName]?.objects ?? {});
+    }
+    public getMapDeadCtr(id: number, mapName: string): number {
+        return this.objects[id]?.[mapName]?.deadCtr
+    }
+}
+
+
 interface IDeadMvpInfo extends Array<IDeadMob> { }
-interface IMvpEntries extends Array<IMvpEntry> { }
 
 async function getDeadMvp(): Promise<IDeadMvpInfo> {
     const mvpInfo = await fetch("https://api.ragnatales.com.br/mvp")
@@ -71,29 +113,52 @@ async function getMobInfo(mob_id: number): Promise<IMobInfo> {
 
 
 
-async function getDeadMvpInfo(): Promise<any> {
+async function getDeadMvpInfo(): Promise<MvpStorage> {
     const deadMvps = await getDeadMvp()
     let MvpOcurrences = new MvpStorage()
     for (const mob of deadMvps) {
         if (!(mob.mob_id in allMobInfos))
             allMobInfos[mob.mob_id] = await getMobInfo(mob.mob_id)
-        console.log(mob.mapname)
         const map = allMobInfos[mob.mob_id].spawns.find(el => el.map = mob.mapname)
-        if (!MvpOcurrences[mob.mob_id]) { MvpOcurrences[mob.mob_id] = {} }
-        MvpOcurrences[mob.mob_id][mob.death_time] = {
+        let temp = {
             mob_id: mob.mob_id,
+            death_time: mob.death_time,
             mob_name: allMobInfos[mob.mob_id].name,
             map_name: mob.mapname,
             delay1: map?.delay1,
             delay2: map?.delay2,
-            bossType: map?.bossType
-        }
+            bossType: map?.bossType,
+        } as IMvpEntry
+        MvpOcurrences.addObject(mob.mob_id, mob.mapname, mob.death_time, temp)
+        console.log(MvpOcurrences.getDeadMobInfo(mob.mob_id, mob.mapname, mob.death_time))
     }
     return MvpOcurrences
 }
 
-(async () => console.log(await getDeadMvpInfo()))()
+function generateAliveMvpInfo(mobInfo: { [index: string]: IMvpEntry }): any {
+    let first = true
+    for (const a in mobInfo) {
+        if (first) { mobInfo[a]["deadCtr"] = 0 }
+        const map_name = mobInfo[a]["map_name"]
+        mobInfo[a]["deadCtr"]++
+    }
 
+}
+
+// TESTING AREA
+(async () => {
+    const a = await getDeadMvpInfo()
+    console.log(a);
+    console.log("MERDA")
+    const b = await getDeadMvpInfo()
+    console.log(b.getMapInfo(1681, "lhz_dun02"))
+    console.log(b.getMapDeadCtr(1681, "lhz_dun02"))
+    console.log("cu")
+
+})()
+
+
+//END TESTING
 
 
 // async function generateMvpEntries(): Promise<any> {
