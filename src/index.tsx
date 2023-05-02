@@ -33,14 +33,13 @@ interface IDeadMob {
 }
 
 interface IMvpEntry {
-    mob_id: number
-    mob_name: string
-    death_time?: any
-    map_name: string
+    mobId: number
+    mobName: string
+    deathTime?: any
+    mapName: string
     delay1?: number
     delay2?: number
     bossType?: number
-    deadCtr: number
 }
 
 
@@ -120,11 +119,11 @@ async function getDeadMvpInfo(): Promise<MvpStorage> {
         if (!(mob.mob_id in allMobInfos))
             allMobInfos[mob.mob_id] = await getMobInfo(mob.mob_id)
         const map = allMobInfos[mob.mob_id].spawns.find(el => el.map = mob.mapname)
-        let temp = {
-            mob_id: mob.mob_id,
-            death_time: mob.death_time,
-            mob_name: allMobInfos[mob.mob_id].name,
-            map_name: mob.mapname,
+        const temp = {
+            mobId: mob.mob_id,
+            deathTime: mob.death_time,
+            mobName: allMobInfos[mob.mob_id].name,
+            mapName: mob.mapname,
             delay1: map?.delay1,
             delay2: map?.delay2,
             bossType: map?.bossType,
@@ -135,27 +134,72 @@ async function getDeadMvpInfo(): Promise<MvpStorage> {
     return MvpOcurrences
 }
 
-function generateAliveMvpInfo(mobInfo: { [index: string]: IMvpEntry }): any {
-    let first = true
-    for (const a in mobInfo) {
-        if (first) { mobInfo[a]["deadCtr"] = 0 }
-        const map_name = mobInfo[a]["map_name"]
-        mobInfo[a]["deadCtr"]++
+function generateAliveMvpInfo(MvpOcurrences: MvpStorage, allMobInfos: { [index: number]: IMobInfo }): void {
+    for (const mobId in allMobInfos) {
+        // generate Alive MvpInfo for known MVPs that have no dead ocurrence
+        if (!(mobId in MvpOcurrences)) {
+            populateWithAliveInfo(allMobInfos[mobId], MvpOcurrences)
+        }
+        adjustAliveInfo(allMobInfos[mobId], MvpOcurrences)
+        // generate Alive MvpInfo for known MVPs that already have dead ocurrences
     }
+}
 
+function populateWithAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
+    let i = 1
+    let temp = {
+        mobId: mobInfo.mob_id,
+        mobName: mobInfo.name
+    } as IMvpEntry
+    for (const spawn of mobInfo["spawns"]) {
+        temp.deathTime = i.toString()
+        temp.mapName = spawn.map
+        temp.delay1 = spawn.delay1
+        temp.delay2 = spawn.delay2
+        temp.bossType = spawn.bossType
+        MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${i.toString()}`, temp, false)
+        i++
+    }
+}
+
+function adjustAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
+    let i = 1
+    let temp = {
+        mobId: mobInfo.mob_id,
+        mobName: mobInfo.name
+    } as IMvpEntry
+    for (const spawn of mobInfo["spawns"]) {
+        const totalSpawns = spawn.qty
+        const deadCtr = MvpOcurrences.getMapDeadCtr(mobInfo.mob_id, spawn.map)
+        if (totalSpawns !== deadCtr) {
+            for (let k = totalSpawns - deadCtr; k > 0; k--) {
+                temp.deathTime = i.toString()
+                temp.mapName = spawn.map
+                temp.delay1 = spawn.delay1
+                temp.delay2 = spawn.delay2
+                temp.bossType = spawn.bossType
+                MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${i.toString()}`, temp, false)
+                i++
+            }
+        }
+    }
+}
+
+async function getInfo(): Promise<MvpStorage> {
+    var startTime = performance.now()
+    const deadInfo = await getDeadMvpInfo()
+    var endTime = performance.now()
+    console.log(`Call to getDeadMvpInfo took ${endTime - startTime} milliseconds`)
+    startTime = performance.now()
+    generateAliveMvpInfo(deadInfo, allMobInfos)
+    endTime = performance.now()
+    console.log(`Call to generateAliveMvpInfo took ${endTime - startTime} milliseconds`)
+    console.log(deadInfo)
+    return deadInfo
 }
 
 // TESTING AREA
-(async () => {
-    const a = await getDeadMvpInfo()
-    console.log(a);
-    console.log("MERDA")
-    const b = await getDeadMvpInfo()
-    console.log(b.getMapInfo(1681, "lhz_dun02"))
-    console.log(b.getMapDeadCtr(1681, "lhz_dun02"))
-    console.log("cu")
-
-})()
+let intervalID = window.setInterval(getInfo, 60000);
 
 
 //END TESTING
