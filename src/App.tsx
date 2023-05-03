@@ -26,7 +26,6 @@ function App() {
     }
     useEffect(() => {
         getMobInfo()
-        console.log("I TRIED SO HARD")
     }, [])
 
     return (
