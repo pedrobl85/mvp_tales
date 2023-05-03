@@ -83,6 +83,10 @@ class MvpStorage {
         return this.objects[id]?.[mapName]?.objects[deathTime];
     }
 
+    public getObjects() {
+        return this.objects
+    }
+
     public getMapInfo(id: number, mapName: string): object[] {
         return Object.values(this.objects[id]?.[mapName]?.objects ?? {});
     }
@@ -137,28 +141,33 @@ async function getDeadMvpInfo(): Promise<MvpStorage> {
 function generateAliveMvpInfo(MvpOcurrences: MvpStorage, allMobInfos: { [index: number]: IMobInfo }): void {
     for (const mobId in allMobInfos) {
         // generate Alive MvpInfo for known MVPs that have no dead ocurrence
-        if (!(mobId in MvpOcurrences)) {
+        if (!(mobId in MvpOcurrences.getObjects())) {
+            console.log(`mobId ${mobId} in mobInfos but not MvpOcurrences`)
+            console.log(allMobInfos)
+            console.log(MvpOcurrences)
             populateWithAliveInfo(allMobInfos[mobId], MvpOcurrences)
         }
-        adjustAliveInfo(allMobInfos[mobId], MvpOcurrences)
+        else {
+            adjustAliveInfo(allMobInfos[mobId], MvpOcurrences)
+        }
         // generate Alive MvpInfo for known MVPs that already have dead ocurrences
     }
 }
 
 function populateWithAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
-    let i = 1
     let temp = {
         mobId: mobInfo.mob_id,
         mobName: mobInfo.name
     } as IMvpEntry
     for (const spawn of mobInfo["spawns"]) {
-        temp.deathTime = i.toString()
-        temp.mapName = spawn.map
-        temp.delay1 = spawn.delay1
-        temp.delay2 = spawn.delay2
-        temp.bossType = spawn.bossType
-        MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${i.toString()}`, temp, false)
-        i++
+        for (let i = spawn.qty; i > 0; i--) {
+            temp.deathTime = i.toString()
+            temp.mapName = spawn.map
+            temp.delay1 = spawn.delay1
+            temp.delay2 = spawn.delay2
+            temp.bossType = spawn.bossType
+            MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive-${i.toString()}`, temp, false)
+        }
     }
 }
 
@@ -185,7 +194,7 @@ function adjustAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
     }
 }
 
-async function getInfo(): Promise<MvpStorage> {
+export default async function getInfo(): Promise<MvpStorage> {
     var startTime = performance.now()
     const deadInfo = await getDeadMvpInfo()
     var endTime = performance.now()
@@ -203,34 +212,6 @@ let intervalID = window.setInterval(getInfo, 60000);
 
 
 //END TESTING
-
-
-// async function generateMvpEntries(): Promise<any> {
-//     const deadMvps = await getDeadMvpInfo()
-//     console.log(deadMvps)
-//     let listAllMvpInstances: {[index: number]: IMvpEntries} = {}
-//     for (const deadMob of deadMvps) {
-//         const mob = await getMobInfo(deadMob.mob_id)
-//         allMobInfos[mob.mob_id] = mob
-//         const individualMvpInstances = MvpInfo(mob, deadMob)
-//         listAllMvpInstances[mob.mob_id].push(individualMvpInstances)
-//     }
-//     console.log(listAllMvpInstances)
-//     console.log(allMobInfos)
-//     return listAllMvpInstances
-// }
-
-// (async () => console.log(await generateMvpEntries()))()
-
-
-// async function updateMvpEntries(currentList: IMvpEntries): Promise<IMvpEntries> {
-//     const deadMvps = await getDeadMvpInfo()
-//     for (const deadMob of deadMvps) {
-//         if (deadMob.mob_id in allMobInfos)
-//     }
-// 
-//     return
-// }
 
 
 
