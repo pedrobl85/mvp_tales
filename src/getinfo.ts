@@ -69,7 +69,7 @@ class MvpStorage {
         if (deadFlag) { this.objects[id][mapName].deadCtr++ }
     }
 
-    public getDeadMob(id: number, mapName: string, deathTime: string): IMvpEntry {
+    public getDeadMob(id: number, mapName: string, deathTime: string): IMvpEntry | undefined {
         return this.objects[id]?.[mapName]?.objects[deathTime];
     }
 

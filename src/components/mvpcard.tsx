@@ -6,7 +6,7 @@ import { IMvpEntry } from '../getinfo'
 
 
 
-export default function MvpCard(mobInfo: IMvpEntry): JSX.Element {
+export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
     function Timer() {
         const [date, setDate] = useState(moment())
 
@@ -26,12 +26,13 @@ export default function MvpCard(mobInfo: IMvpEntry): JSX.Element {
         )
     }
 
+
     return (
         <Card>
             <Card.Content>
-                <Card.Header>{mobInfo.mobName}</Card.Header>
+                <Card.Header>{mobInfo === undefined ? "NULL" : mobInfo.mobName}</Card.Header>
                 <Card.Meta>
-                    <span className='date'>{mobInfo.mobId}</span>
+                    <span className='date'>{mobInfo === undefined ? "NULL" : mobInfo.mobId}</span>
                 </Card.Meta>
                 <Card.Description>
                     <Timer />

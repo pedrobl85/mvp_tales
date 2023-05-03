@@ -16,7 +16,7 @@ const initMob = {
 
 // TEST stuff
 function App() {
-    const [mobInfo, setMobInfo] = useState<IMvpEntry>(initMob)
+    const [mobInfo, setMobInfo] = useState<IMvpEntry | undefined>(initMob)
 
     const getMobInfo = async () => {
         const mobInfo = await getDeadMvpInfo()
@@ -31,7 +31,7 @@ function App() {
 
     return (
         <div>
-            <MvpCard {...mobInfo} />
+            <MvpCard {...mobInfo === undefined ? initMob : mobInfo} />
         </div>
     )
 }
