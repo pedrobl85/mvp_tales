@@ -149,17 +149,17 @@ function generateAliveMvpInfo(MvpOcurrences: MvpStorage, allMobInfos: { [index: 
 }
 
 function populateWithAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
-    let temp = {
-        mobId: mobInfo.mob_id,
-        mobName: mobInfo.name
-    } as IMvpEntry
     for (const spawn of mobInfo["spawns"]) {
         for (let i = spawn.qty; i > 0; i--) {
-            temp.deathTime = `alive-${i.toString()}`
-            temp.mapName = spawn.map
-            temp.delay1 = spawn.delay1
-            temp.delay2 = spawn.delay2
-            temp.bossType = spawn.bossType
+            let temp = {
+                deathTime: `alive-${i.toString()}`,
+                mapName: spawn.map,
+                delay1: spawn.delay1,
+                delay2: spawn.delay2,
+                bossType: spawn.bossType,
+                mobId: mobInfo.mob_id,
+                mobName: mobInfo.name
+            } as IMvpEntry
             MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive-${i.toString()}`, temp, false)
         }
     }
