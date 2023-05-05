@@ -52,8 +52,8 @@ interface MultiKeyData {
     [id: number]: MapData;
 }
 
-class MvpStorage {
-    private objects: MultiKeyData = {};
+export class MvpStorage {
+    public objects: MultiKeyData = {};
 
     public addObject(id: number, mapName: string, deathTime: string, object: IMvpEntry, deadFlag = true): void {
         if (!this.objects[id]) {
@@ -73,6 +73,10 @@ class MvpStorage {
         return this.objects[id]?.[mapName]?.objects[deathTime];
     }
 
+    public getMaps(id: number): object {
+        return this.objects[id]
+    }
+
     public getObjects() {
         return this.objects
     }
@@ -81,7 +85,7 @@ class MvpStorage {
         return Object.values(this.objects[id]?.[mapName]?.objects ?? {});
     }
     public getMapDeadCtr(id: number, mapName: string): number {
-        return this.objects[id]?.[mapName]?.deadCtr
+        return this.objects[id]?.[mapName]?.deadCtr === undefined ? 0 : this.objects[id]?.[mapName]?.deadCtr
     }
 }
 
@@ -101,6 +105,7 @@ async function getMobInfo(mob_id: number): Promise<IMobInfo> {
         ctr = ctr + spawn.qty
     }
     mobInfo["ctr"] = ctr
+    console.log(`Adding ${mobInfo.mob_id} information!`)
     return mobInfo
 }
 
@@ -112,7 +117,7 @@ export async function getDeadMvpInfo(): Promise<MvpStorage> {
     for (const mob of deadMvps) {
         if (!(mob.mob_id in allMobInfos))
             allMobInfos[mob.mob_id] = await getMobInfo(mob.mob_id)
-        const map = allMobInfos[mob.mob_id].spawns.find(el => el.map = mob.mapname)
+        const map = allMobInfos[mob.mob_id].spawns.reverse().find(el => el.map === mob.mapname) // reversing because there are bugged entries that come first for some mobs(1087,12)
         const temp = {
             mobId: mob.mob_id,
             deathTime: mob.death_time,
@@ -123,7 +128,6 @@ export async function getDeadMvpInfo(): Promise<MvpStorage> {
             bossType: map?.bossType,
         } as IMvpEntry
         MvpOcurrences.addObject(mob.mob_id, mob.mapname, mob.death_time, temp)
-        console.log(MvpOcurrences.getDeadMob(mob.mob_id, mob.mapname, mob.death_time))
     }
     return MvpOcurrences
 }
@@ -151,7 +155,7 @@ function populateWithAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): vo
     } as IMvpEntry
     for (const spawn of mobInfo["spawns"]) {
         for (let i = spawn.qty; i > 0; i--) {
-            temp.deathTime = i.toString()
+            temp.deathTime = `alive-${i.toString()}`
             temp.mapName = spawn.map
             temp.delay1 = spawn.delay1
             temp.delay2 = spawn.delay2
@@ -162,29 +166,28 @@ function populateWithAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): vo
 }
 
 function adjustAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
-    let i = 1
-    let temp = {
-        mobId: mobInfo.mob_id,
-        mobName: mobInfo.name
-    } as IMvpEntry
     for (const spawn of mobInfo["spawns"]) {
         const totalSpawns = spawn.qty
         const deadCtr = MvpOcurrences.getMapDeadCtr(mobInfo.mob_id, spawn.map)
+        console.log(mobInfo.mob_id, spawn.map, deadCtr)
         if (totalSpawns !== deadCtr) {
             for (let k = totalSpawns - deadCtr; k > 0; k--) {
-                temp.deathTime = i.toString()
-                temp.mapName = spawn.map
-                temp.delay1 = spawn.delay1
-                temp.delay2 = spawn.delay2
-                temp.bossType = spawn.bossType
-                MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${i.toString()}`, temp, false)
-                i++
+                let temp = {
+                    deathTime: `alive+${k.toString()}`,
+                    mapName: spawn.map,
+                    delay1: spawn.delay1,
+                    delay2: spawn.delay2,
+                    bossType: spawn.bossType,
+                    mobId: mobInfo.mob_id,
+                    mobName: mobInfo.name,
+                } as IMvpEntry
+                MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${k.toString()}`, temp, false)
             }
         }
     }
 }
 
-export default async function getInfo(): Promise<MvpStorage> {
+export async function getInfo(): Promise<MvpStorage> {
     var startTime = performance.now()
     const deadInfo = await getDeadMvpInfo()
     var endTime = performance.now()

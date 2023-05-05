@@ -1,38 +1,36 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import './App.css';
-import getInfo, { IMvpEntry } from './getinfo'
+import { getInfo, MvpStorage } from './getinfo'
 import 'semantic-ui-css/semantic.min.css'
-import { Card, Icon, Image } from 'semantic-ui-react'
-import MvpCard from './components/mvpcard'
-import { getDeadMvpInfo } from './getinfo';
+import MvpCardGrid from './components/grid'
 
-const initMob = {
-    mapName: "abyss_04",
-    mobName: "bone_detale",
-    mobId: 20618,
-    deathTime: "2023-05-03 13:11:50",
-} as IMvpEntry
+
 
 
 // TEST stuff
 function App() {
-    const [mobInfo, setMobInfo] = useState<IMvpEntry | undefined>(initMob)
+    const [mvpInfo, setMvpInfo] = useState<MvpStorage>()
 
-    const getMobInfo = async () => {
-        const mobInfo = await getDeadMvpInfo()
-        const b = mobInfo.getDeadMob(1641, "lhz_dun03", "2023-05-03 16:09:56")
-        console.log(b)
-        setMobInfo(b)
-    }
     useEffect(() => {
-        getMobInfo()
+        let first = true
+        async function getMobInfo(): Promise<void> {
+            const mobInfo = await getInfo()
+            console.log(mobInfo)
+            setMvpInfo(mobInfo)
+        }
+        if (first) {
+            getMobInfo()
+        }
+        setInterval(getMobInfo, 120000)
     }, [])
-
-    return (
-        <div>
-            <MvpCard {...mobInfo === undefined ? initMob : mobInfo} />
-        </div>
-    )
+    if (mvpInfo) {
+        return (
+            <div>
+                <MvpCardGrid mvpStorage={mvpInfo} />
+            </div>
+        )
+    }
+    else { return null }
 }
 
 export default App;
