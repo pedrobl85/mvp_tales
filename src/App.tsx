@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import './App.css';
 import { getInfo, MvpStorage } from './getinfo'
 import 'semantic-ui-css/semantic.min.css'
+import './App.css';
 import MvpCardGrid from './components/grid'
 
 

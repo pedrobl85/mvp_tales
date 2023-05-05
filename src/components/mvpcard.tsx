@@ -44,7 +44,7 @@ export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
         }, [])
         return (
 
-            <div>
+            <div className = "timer_container">
                 <span className={respawnTimer === "Alive" ? "alive" : `timer${possibleFlag ? " possibly_alive" : " dead"}`}>
                     {respawnTimer.toString()}
                 </span>
