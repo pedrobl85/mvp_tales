@@ -1,4 +1,4 @@
-import { Card, Divider } from 'semantic-ui-react'
+import { Card, Divider, Image } from 'semantic-ui-react'
 import './mvpcard'
 import { MvpStorage, IMvpEntry } from '../getinfo'
 import MvpCard from './mvpcard';
@@ -44,10 +44,12 @@ export default function MvpCardGrid({ mvpStorage }: IComponentProp) {
 
     return (
         <div className="container">
+            <h1> MVP </h1>
             <Card.Group>
                 {mvpCards}
             </Card.Group>
             <Divider />
+            <h1> Mini-Boss</h1>
             <Card.Group>
                 {minibossCards}
             </Card.Group>
