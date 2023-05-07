@@ -187,8 +187,15 @@ function adjustAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
     }
 }
 
+async function getKnownInfo(): Promise<void> {
+    for (const mobId of [1038, 1039, 1046, 1059, 1086, 1087, 1089, 1090, 1091, 1092, 1093, 1096, 1112, 1115, 1120, 1147, 1150, 1157, 1159, 1190, 1203, 1204, 1205, 1251, 1252, 1259, 1262, 1272, 1283, 1289, 1302, 1307, 1312, 1373, 1388, 1389, 1418, 1492, 1511, 1582, 1583, 1623, 1630, 1658, 1681, 1685, 1688, 1719, 1720, 1734, 1751, 1765, 1768, 1785, 1832, 1871, 1885, 1917, 2068, 3658, 3659, 3747, 3748, 3749, 20618, 20940, 21163, 21301])
+        if (!(mobId in allMobInfos))
+            allMobInfos[mobId] = await getMobInfo(mobId)
+}
+
 export async function getInfo(): Promise<MvpStorage> {
     var startTime = performance.now()
+    getKnownInfo()
     const deadInfo = await getDeadMvpInfo()
     var endTime = performance.now()
     console.log(`Call to getDeadMvpInfo took ${endTime - startTime} milliseconds`)
