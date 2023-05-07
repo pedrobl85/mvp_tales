@@ -1,0 +1,19 @@
+.possibly_alive{
+    color: yellow;
+    font-weight: bold;
+}
+
+.dead{
+    color:red;
+    font-weight: bold;
+}
+
+.alive{
+    color:green;
+    font-weight: 900;
+}
+
+.timer_container{
+    display: flex;
+    justify-content: space-between;
+}
