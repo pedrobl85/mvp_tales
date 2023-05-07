@@ -21,7 +21,7 @@ function App() {
         if (first) {
             getMobInfo()
         }
-        setInterval(getMobInfo, 120000)
+        setInterval(getMobInfo, 90000)
     }, [])
     if (mvpInfo) {
         return (
