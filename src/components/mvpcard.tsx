@@ -24,7 +24,6 @@ export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
                 if (diff.asMilliseconds() > 0) {
                     const endPossibleSpawn = startPossibleSpawn.add(mobInfo?.delay2, "millisecond")
                     setPossibleFlag(true)
-                    const nowDiff = moment.duration(moment().diff(endPossibleSpawn))
                     if (mobInfo?.delay2) {
                         setAliveChance(Math.floor(100 - ((endPossibleSpawn.diff(moment())) / mobInfo?.delay2) * 100))
                     }
@@ -64,7 +63,7 @@ export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
                     <span className='date'>{mobInfo === undefined ? "NULL" : mobInfo.mobId}</span>
                 </Card.Meta>
                 <Card.Content extra>
-                    <span className='map_name'>{mobInfo === undefined ? "NULL" : mobInfo.mapName}</span>
+                    <div className='map_name'>{mobInfo === undefined ? "NULL" : mobInfo.mapName}</div>
                 </Card.Content>
                 <Card.Description>
                     <DeathTimer />
