@@ -30,6 +30,7 @@ export interface IMvpEntry {
     delay1?: number
     delay2?: number
     bossType?: number
+    killer?: string
 }
 
 
@@ -126,6 +127,7 @@ export async function getDeadMvpInfo(): Promise<MvpStorage> {
             delay1: map?.delay1,
             delay2: map?.delay2,
             bossType: map?.bossType,
+            killer: mob.killer
         } as IMvpEntry
         MvpOcurrences.addObject(mob.mob_id, mob.mapname, mob.death_time, temp)
     }
@@ -180,6 +182,7 @@ function adjustAliveInfo(mobInfo: IMobInfo, MvpOcurrences: MvpStorage): void {
                     bossType: spawn.bossType,
                     mobId: mobInfo.mob_id,
                     mobName: mobInfo.name,
+                    
                 } as IMvpEntry
                 MvpOcurrences.addObject(mobInfo.mob_id, spawn.map, `alive+${k.toString()}`, temp, false)
             }

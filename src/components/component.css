@@ -17,3 +17,12 @@
     display: flex;
     justify-content: space-between;
 }
+
+.death_info{
+    display: flex;
+    justify-content: space-between
+}
+
+.killer_name{
+    color: red;
+}

@@ -43,7 +43,7 @@ export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
         }, [])
         return (
 
-            <div className = "timer_container">
+            <div className="timer_container">
                 <span className={respawnTimer === "Alive" ? "alive" : `timer${possibleFlag ? " possibly_alive" : " dead"}`}>
                     {respawnTimer.toString()}
                 </span>
@@ -64,6 +64,12 @@ export default function MvpCard(mobInfo?: IMvpEntry): JSX.Element {
                 </Card.Meta>
                 <Card.Content extra>
                     <div className='map_name'>{mobInfo === undefined ? "NULL" : mobInfo.mapName}</div>
+                    <div className="death_info">
+                        <span>
+                            {mobInfo === undefined ? "NULL" : mobInfo.deathTime.length > 10 ? `Death: ${ moment(mobInfo.deathTime).format("HH:mm:ss") }` : ""}
+                        </span>
+                        <span className="killer_name">{mobInfo === undefined ? "NULL" : mobInfo.deathTime.length > 10 ? mobInfo.killer : ""}</span>
+                    </div>
                 </Card.Content>
                 <Card.Description>
                     <DeathTimer />
